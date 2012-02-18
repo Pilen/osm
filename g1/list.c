@@ -1,4 +1,6 @@
-include <stdlib.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "list.h"
 
 /* used if it's not possible to allocate more memory with malloc */
 static void out_of_memory() {
@@ -10,22 +12,22 @@ void append(Listnode **start, Data elem) {
   Listnode *ptr;
   Listnode *temp = (Listnode *) malloc(sizeof(Listnode));
   if (temp == NULL) out_of_memory();
-  temp.content = elem;
-  temp.next = NULL;
+  temp->content = elem;
+  temp->next = NULL;
 
   if (*start == NULL)
     prepend(start, elem);
   else {
     for (ptr = *start; ptr->next != NULL; ptr = ptr->next);
-    ptr.next = temp;
+    ptr->next = temp;
   }
 }
 
 void prepend(Listnode **start, Data elem) {
   Listnode *temp = (Listnode *) malloc(sizeof(Listnode));
   if (temp == NULL) out_of_memory();
-  temp.content = elem;
-  temp.next = *start;
+  temp->content = elem;
+  temp->next = *start;
   *start = temp;
 }
 
