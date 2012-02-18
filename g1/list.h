@@ -18,7 +18,7 @@ int length(Listnode *start); // length
 /* return first element (if not empty) */
 Data head(Listnode *start);
 
-/*XXXXXXXXXXXXXXXXXXXXXXXXX*/
+/* uses match function and removes first matching element from list, if any */
 void remv(Listnode **start, int (*match)(Data));
 
 #endif

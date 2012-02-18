@@ -1,11 +1,11 @@
 include <stdlib.h>
 
+/* used if it's not possible to allocate more memory with malloc */
 static void out_of_memory() {
   printf("Out of memory.\n");
   exit(EXIT_FAILURE);
 }
 
-/* add an element at the end of the list */
 void append(Listnode **start, Data elem) {
   Listnode *ptr;
   Listnode *temp = (Listnode *) malloc(sizeof(Listnode));
@@ -20,7 +20,7 @@ void append(Listnode **start, Data elem) {
     ptr.next = temp;
   }
 }
-/* add an element at the front */
+
 void prepend(Listnode **start, Data elem) {
   Listnode *temp = (Listnode *) malloc(sizeof(Listnode));
   if (temp == NULL) out_of_memory();
@@ -29,7 +29,6 @@ void prepend(Listnode **start, Data elem) {
   *start = temp;
 }
 
-/* length of a list */
 int length(Listnode *start) { 
   int len = 0;
   while (start != NULL) {
@@ -39,7 +38,6 @@ int length(Listnode *start) {
   return len;
 }
 
-/*return first element (if not empty) */
 Data head(Listnode *start) {
   if (start == NULL)
     return NULL;
@@ -57,8 +55,8 @@ void remv(Listnode **start, int (*match)(Data))
     curr = curr->next;
   }
   if (curr == NULL)
-    return; /*not found, do nothing */
+    return; /* not found, do nothing */
 
-  *last = curr->next; /*found, remove and free */
+  *last = curr->next; /* found, remove and free */
   free(curr);
 }
