@@ -18,5 +18,8 @@ int length(Listnode *start); // length
 /* return first element (if not empty) */
 Data head(Listnode *start);
 
+/*XXXXXXXXXXXXXXXXXXXXXXXXX*/
+void remv(Listnode **start, int (*match)(Data));
+
 #endif
 
