@@ -25,5 +25,5 @@ void* stack_pop(stack_t* stack) {
 
 int stack_push(stack_t* stack, void* data) {
   prepend(stack,data);
-  return 1;
+  return 0;
 }

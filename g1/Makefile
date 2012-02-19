@@ -8,7 +8,7 @@ calc.o: calc.c stack.h
 	$(CC) $(CFLAGS) -c calc.c
 
 stack.o: stack.c stack.h
-	$(CC) $(CFLAGS) -c stack.c -o stack.o
+	$(CC) $(CFLAGS) -c stack.c
 
 list.o: list.c list.h
 	$(CC) $(CFLAGS) -c list.c
