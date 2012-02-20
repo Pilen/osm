@@ -23,7 +23,7 @@
 
 %% Titel og forfatter
 \title{}
-\author{Maria Caroline Miller, 040779, twq135}
+\author{Maria Caroline Miller, 040779, twq135 \\ Søren Pilgård, 190689, vpb984}
 
 %% Start dokumentet
 \begin{document}
@@ -50,5 +50,56 @@ Append tilføjer et element i slutningen af listen. Igen skal der laves plads ti
 
 \subsection{Årsager til brug af typen Listnode\*\* start}
 
+\begin{figure}[tb!]
+  \centering
+\begin{verbatim}
+                   |________|
+                   |        |
+kalder:            |________|
+start --------     |        |--
+                |  |________|  |
+prepend:        |  |        |  |
+start-------|   |  |________|  |
+            |   -> |cont    |<-
+            |----> |________|
+                   |next    |
+                   |________|
+                   |        |
+                   |________|
+                   |        |
+\end{verbatim}
+  \caption{prepend(Listnode *start, Data elem)}
+  \label{fig:prependstar}
+\end{figure}
+
+\begin{figure}[htb!]
+  \centering
+\begin{verbatim}
+                   |________|
+                   |        |
+kalder:            |________|
+start -----------> |Addresse|--
+            -----> |________|  |
+prepend:    |      |        |  |
+start-------|      |________|  |
+                   |cont    |<-
+                   |________|
+                   |next    |
+                   |________|
+                   |        |
+                   |________|
+                   |        |
+\end{verbatim}
+  \caption{prepend(Listnode **start, Data elem)}
+  \label{fig:prependstarstar}
+\end{figure}
+
+I figur \ref{fig:prependstar} ses hvordan en kaldende funktion kalder prepend med en peger direkte til første element. Prepend virker ved at oprette en ny hægte med den tidligere forreste hægte som dens næste. Problemet er dog at vi fra prepend funktionen ikke kan gøre den kaldene funktion klar over at listen ikke længere starter det samme sted. Prepends start variabel er lokal så ændringer propageres ikke tilbage til kalderen som stadig ser det samme element som det første.
+
+I figur \ref{fig:prependstarstar} ses løsningen. Her kaldes prepend med en peger til en peger i hukommelsen som peger til det første element i listen. Så selv om ændringer af start ikke propageres tilbage til start kan vi ændre i det som start peger på. Altså Addressen til det første element i listen.
+
+
+I normale tilfælde vil det ikke være nødvendigt med en pegerpeger som argument til append. Append skal bare vide hvor listen starter og følge den til den når enden hvor den så indsætter et nyt element.
+Men fordi append også skal kunne håndtere at indsætte elementer i en tom liste er vi nød til at bruge en pegerpeger. Ellers ville vi stå i den situation at vi ikke kunne ændre listen til at pege på det første element. Problemstillingen er dermed tilsvarende som for prepend. Dette er især tydeligt da vi i vores løsning har sagt at hvis der kaldes append på den tomme liste svarer det til en prepend, så vi kalder blot prepend funktionen.
 
 \end{document}
