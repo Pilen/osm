@@ -106,28 +106,29 @@ I normale tilfælde vil det ikke være nødvendigt med en pegerpeger som argumen
 Men fordi append også skal kunne håndtere at indsætte elementer i en tom liste er vi nødt til at bruge en pegerpeger. Ellers ville vi stå i den situation at vi ikke kunne ændre listen til at pege på det første element. Problemstillingen er dermed tilsvarende som for prepend. Dette er især tydeligt da vi i vores løsning har sagt at hvis der kaldes append på den tomme liste svarer det til en prepend, så vi kalder blot prepend-funktionen.
 
 \subsection{Remv}
-I den udleverede kode til remv løbes listen igennem indtil det første match på data mødes, og hvis et sådant findes slettes dette element i listen, og der returneres. Hvis ikke gør funktionen ikke noget. Der er dog et problem med while-løkken i funktionen - eller rettere med rækkefølgen af betingelserne til while-løkken. I den udleverede version tjekkes der først på om det nuværende elements data matcher, og derefter på om det nuværende element er NULL. Hvis man forestiller sig at man har løbet hele listen igennem uden at finde et match, og nu befinder sig på sidste element. Dette passer heller ikke, og while-løkken rykker videre til næste element. curr bliver herefter sat til det som curr$\rightarrow$next peger på - i dette tilfælde NULL. Når man næste gang skal kigge på betingelserne i while-løkken prøver den hermed at lave et match på NULL, da curr$\rightarrow$content ikke eksisterer i NULL. Den anden betingelse tester på om curr==NULL. Det er derfor ønskværdigt at de to betingelser bytter plads, da C's \&\& operator garanterer venstre-mod-højre evaluering, og vi derfor kan sikre os mod at vi prøver at køre match på NULL.\\
+I den udleverede kode til remv løbes listen igennem indtil det første match på data mødes, og hvis et sådant findes slettes dette element i listen, og der returneres. Hvis ikke gør funktionen ikke noget. Der er dog et problem med while-løkken i funktionen - eller rettere med rækkefølgen af betingelserne til while-løkken. I den udleverede version tjekkes der først på om det nuværende elements data matcher, og derefter på om det nuværende element er NULL. Hvis man forestiller sig at man har løbet hele listen igennem uden at finde et match, og nu befinder sig på sidste element. Dette passer heller ikke, og while-løkken rykker videre til næste element. curr bliver herefter sat til det som curr$\right
+\end{document}
+arrow$next peger på - i dette tilfælde NULL. Når man næste gang skal kigge på betingelserne i while-løkken prøver den hermed at lave et match på NULL, da curr$\rightarrow$content ikke eksisterer i NULL. Den anden betingelse tester på om curr==NULL. Det er derfor ønskværdigt at de to betingelser bytter plads, da C's \&\& operator garanterer venstre-mod-højre evaluering, og vi derfor kan sikre os mod at vi prøver at køre match på NULL.\\
 
 Vi har derfor rettet remv, så der nu er byttet om på de to betingelser i while-løkken.
 
 \subsection{Brug af vores hægtede liste som stack til calc.c}
 For at optimere implementationen af stakke har vi valgt at bruge en liste forfra.
 Så istedet for at sætte nye elementer bag på listen, sættes de foran med prepend.
-Da man i en traditionel stak kun arbejder med det øverste element er der ingen grund til at traversere hele listen for at pushe og poppe. Ved altid at indsætte nye elementer forrest betyder det at push, pop og top kan gøres i konstant tid i modsat til lineærtid hvis hele listen skulle traverseres. For nemhedens skyld har vi dog implenteret empty med length funktionen som betyder at den kører i lineær tid selv om det kunne gøres med en test om der eksisterer bare et element i listen.
-
+Da man i en traditionel stak kun arbejder med det øverste element er der ingen grund til at traversere hele listen for at pushe og poppe. Ved altid at indsætte nye elementer forrest betyder det at push, pop og top kan gøres i konstant tid i modsætning til lineær tid hvis hele listen skulle traverseres. For nemhedens skyld har vi dog implementeret empty med length-funktionen som betyder at den kører i lineær tid selv om det kunne gøres med en test om der eksisterer bare et element i listen.
 
 stack\_init er en dummy funktion der intet foretager sig.
 I modsætning til den oprindelige implementation er der ikke noget data der skal initialiseres. Men for at overholde headerfilen har vi implementeret en funktion der ikke gør noget.
 
-stack\_empty er en simpel test om lengden af listen er lig med 0.
+stack\_empty er en simpel test om længden af listen er lig med 0.
 
 stack\_top er et kald til head.
 
 stack\_push er et kald til prepend.
-Da liste implementationen har sin egen fejl håndtering hvor programmet afsluttes hvis der ikke kan allokeres plads vil prepend funktionen have allokeret plads korrekt hvis den returnerer og vi kan derfor altid returnere 0.
+Da liste-implementationen har sin egen fejlhåndtering hvor programmet afsluttes, hvis der ikke kan allokeres plads vil prepend-funktionen have allokeret plads korrekt hvis den returnerer og vi kan derfor altid returnere 0.
 
 stack\_pop er lidt mere krævende da der ikke findes en tilsvarende funktion i list.h.
-funktionen river derfor manuelt hovedet af listen, deallokerer hukkomelsen, sætter stackpegepinden til at pege på det nye øverste element og returnerer indholdet af det tidligere hoved.
+Funktionen river derfor manuelt hovedet af listen, deallokerer hukommelsen, sætter stackpegepinden til at pege på det nye øverste element og returnerer indholdet af det tidligere hoved.
 
 \section{Opgave 2 - Fleksible arrays med Brauntræer}
 Brauntræer er binære træer, hvor hvert undertræ har det samme antal knuder, eller det venstre har kun en mere end det højre. Disse træer skal bruges til at implementere fleksible arrays.
