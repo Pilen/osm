@@ -19,7 +19,6 @@ Data remvL(Tree tree); /* remove from left, return removed element  */
 Data remvR(Tree tree); /* remove from right, return removed element */
 
 Data lookup(Tree tree, int i); /* return element at index i (or NULL) */
-void printTree(Tree tree);
 
 #endif
 

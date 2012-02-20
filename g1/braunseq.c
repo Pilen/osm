@@ -57,6 +57,7 @@ void addL(Tree tree, Data new_el){
   return;
 }
 
+/* Rebalances the tree recursively after a new root has been inserted */
 void rebalance(bNode *top) {
   /*
   if (top->left == NULL) {
