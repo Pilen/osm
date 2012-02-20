@@ -39,12 +39,12 @@
 \section{Opgave 1 - Hægtede lister - list.c og list.h}
 
 \subsection{Implementation af length and head}
-Length skal finde længden af en liste, og returnere denne. Med en simpel while-løkke løbes listen igennem, indtil pegeren peger på NULL. For hver gang lægges 1 til variablen len, og pegeren flyttes til næste element i listen med start = start-\>next.\\
+Length skal finde længden af en liste, og returnere denne. Med en simpel while-løkke løbes listen igennem, indtil pegeren peger på NULL. For hver gang lægges 1 til variablen len, og pegeren flyttes til næste element i listen med start = start->next.\\
 \\
-Head svarer til det første element i en given liste. Dette kan derfor nemt gøres ved returnere start-\>content, som indeholder første elements data. Det er dog vigtigt lige at tjekke om listen eventuelt er tom, og i så tilfælde returnere NULL.
+Head svarer til det første element i en given liste. Dette kan derfor nemt gøres ved returnere start->content, som indeholder første elements data. Det er dog vigtigt lige at tjekke om listen eventuelt er tom, og i så tilfælde returnere NULL.
 
 \subsection{Implementation af append og prepend}
-Prepend tilføjer et element forrest i den hægtede liste. Til at starte med kræves det at man laver plads til et nyt element ved hjælp af malloc. Vi har valgt at kopiere out\_of\_memory fra den polske lommeregner fra øvelsestimen, og denne afslutter programmet hvis der ikke er mere plads i hukommelsen. Derefter oprettes elementet med sin data og dens next-peger sættes til at pege på det gamle første element, specificeret ved \*start. Derefter sættes \*start til at pege på den nye element.\\
+Prepend tilføjer et element forrest i den hægtede liste. Til at starte med kræves det at man laver plads til et nyt element ved hjælp af malloc. Vi har valgt at kopiere out\_of\_memory fra den polske lommeregner fra øvelsestimen, og denne afslutter programmet hvis der ikke er mere plads i hukommelsen. Derefter oprettes elementet med sin data og dens next-peger sættes til at pege på det gamle første element, specificeret ved *start. Derefter sættes *start til at pege på den nye element.\\
 \\
 Append tilføjer et element i slutningen af listen. Igen skal der laves plads til et nyt element ved hjælp af malloc, og det nye element oprettes med data og peger. Hvis listen er tom, kalder vi prepend, som tilføjer et element i starten af listen. Ellers skal vi løbe listen igennem indtil vi finder et element hvis next-peger peger på NULL. Dette er det sidste element i den allerede oprettede liste. Dens peger sættes til at pege på det nys oprettede element istedet for NULL.
 
@@ -56,11 +56,11 @@ Append tilføjer et element i slutningen af listen. Igen skal der laves plads ti
                    |________|
                    |        |
 kalder:            |________|
-start --------     |        |--
-                |  |________|  |
-prepend:        |  |        |  |
-start-------|   |  |________|  |
-            |   -> |cont    |<-
+start --------     |        |
+                |  |________|
+prepend:        |  |        |
+start-------|   |  |________|
+            |   -> |cont    |
             |----> |________|
                    |next    |
                    |________|
@@ -94,12 +94,18 @@ start-------|      |________|  |
   \label{fig:prependstarstar}
 \end{figure}
 
-I figur \ref{fig:prependstar} ses hvordan en kaldende funktion kalder prepend med en peger direkte til første element. Prepend virker ved at oprette en ny hægte med den tidligere forreste hægte som dens næste. Problemet er dog at vi fra prepend funktionen ikke kan gøre den kaldene funktion klar over at listen ikke længere starter det samme sted. Prepends start variabel er lokal så ændringer propageres ikke tilbage til kalderen som stadig ser det samme element som det første.
-
-I figur \ref{fig:prependstarstar} ses løsningen. Her kaldes prepend med en peger til en peger i hukommelsen som peger til det første element i listen. Så selv om ændringer af start ikke propageres tilbage til start kan vi ændre i det som start peger på. Altså Addressen til det første element i listen.
-
-
+I figur \ref{fig:prependstar} ses hvordan en kaldende funktion kalder prepend med en peger direkte til første element. Prepend virker ved at oprette en ny hægte med den tidligere forreste hægte som dens næste. Problemet er dog at vi fra prepend-funktionen ikke kan gøre den kaldende funktion klar over at listen ikke længere starter det samme sted. Prepend's startvariabel er lokal så ændringer propageres ikke tilbage til kalderen som stadig ser det samme element som det første.\\
+\\
+I figur \ref{fig:prependstarstar} ses løsningen. Her kaldes prepend med en peger til en peger i hukommelsen som peger til det første element i listen. Så selv om ændringer af start ikke propageres tilbage til start kan vi ændre i det som start peger på. Altså addressen til det første element i listen.\\
+\\
 I normale tilfælde vil det ikke være nødvendigt med en pegerpeger som argument til append. Append skal bare vide hvor listen starter og følge den til den når enden hvor den så indsætter et nyt element.
-Men fordi append også skal kunne håndtere at indsætte elementer i en tom liste er vi nød til at bruge en pegerpeger. Ellers ville vi stå i den situation at vi ikke kunne ændre listen til at pege på det første element. Problemstillingen er dermed tilsvarende som for prepend. Dette er især tydeligt da vi i vores løsning har sagt at hvis der kaldes append på den tomme liste svarer det til en prepend, så vi kalder blot prepend funktionen.
+Men fordi append også skal kunne håndtere at indsætte elementer i en tom liste er vi nødt til at bruge en pegerpeger. Ellers ville vi stå i den situation at vi ikke kunne ændre listen til at pege på det første element. Problemstillingen er dermed tilsvarende som for prepend. Dette er især tydeligt da vi i vores løsning har sagt at hvis der kaldes append på den tomme liste svarer det til en prepend, så vi kalder blot prepend-funktionen.
+
+\subsection{Remv}
+I den udleverede kode til remv løbes listen igennem indtil det første match på data mødes, og hvis et sådant findes slettes dette element i listen, og der returneres. Hvis ikke gør funktionen ikke noget. Der er dog et problem med while-løkken i funktionen - eller rettere med rækkefølgen af betingelserne til while-løkken. I den udleverede version tjekkes der først på om det nuværende elements data matcher, og derefter på om det nuværende element er NULL. Hvis man forestiller sig at man har løbet hele listen igennem uden at finde et match, og nu befinder sig på sidste element. Dette passer heller ikke, og while-løkken rykker videre til næste element. curr bliver herefter sat til det som curr->next peger på - i dette tilfælde NULL. Når man næste gang skal kigge på betingelserne i while-løkken prøver den hermed at lave et match på NULL, da curr->content ikke eksisterer i NULL. Den anden betingelse tester på om curr==NULL. Det er derfor ønskværdigt at de to betingelser bytter plads, da C's \&\& operator garanterer venstre-mod-højre evaluering, og vi derfor kan sikre os mod at vi prøver at køre match på NULL.\\
+
+Vi har derfor rettet remv, så der nu er byttet om på de to betingelser i while-løkken.
+
+
 
 \end{document}
