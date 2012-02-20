@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
   int i;
 
   tree[0] = NULL;
+
   if (argc >= 2) {
     tests = atoi(argv[1]);
   }
@@ -24,4 +25,4 @@ int main(int argc, char **argv) {
   for (i = 0; i < tests; i++)
     printf("%lf\n",remvR(tree));
 }
-
+  

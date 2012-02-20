@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-g -Wall -Wextra -pedantic -std=c99
 
-all: calc brauntest
+all: calc brauntest listtest
 
 calc: calc.o stack.o list.o
 	$(CC) $(CFLAGS) calc.o stack.o list.o -o calc
@@ -16,6 +16,13 @@ list.o: list.c list.h
 	$(CC) $(CFLAGS) -c list.c
 
 
+listtest: listtest.o list.o
+	$(CC) $(CFLAGS) listtest.o list.o -o listtest
+
+listtest.o: listtest.c list.h
+	$(CC) $(CFLAGS) -c listtest.c
+
+
 brauntest: brauntest.o braunseq.o
 	$(CC) $(CFLAGS) brauntest.o braunseq.o -o brauntest
 brauntest.o: brauntest.c braunseq.h
@@ -28,6 +35,9 @@ clean:
 	rm -f calc.o
 	rm -f stack.o
 	rm -f list.o
+
+	rm -f listtest
+	rm -f listtest.o
 
 	rm -f brauntest
 	rm -f brauntest.o
