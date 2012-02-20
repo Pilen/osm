@@ -14,9 +14,9 @@ void error(char* msg) { // report an error and exit
 }
 
 // divide by 2 using bit shift
-inline int half(int i) { return (i>>1); }
+static inline int half(int i) { return (i>>1); }
 // test if an int is odd (return 1 if it is, 0 otherwise)
-inline int odd(int i) { return (i & 0x1); }
+static inline int odd(int i) { return (i & 0x1); }
 
 // recursive helper for size: difference btw. tree size and m (recursive)
 int diff(int n, bNode* t);
@@ -36,10 +36,45 @@ int size(Tree tree) {
   }
 }
 
+void rebalance(bNode *);
 void addL(Tree tree, Data new_el){
   // insert into new root, push old root into right subtree, swap sides
+  bNode *new = (bNode *) malloc(sizeof(bNode));
+  new->el = new_el;
+  new->left = NULL;
+  new->right = NULL;
+
+  if (*tree == NULL) {
+    *tree = new;
+    return;
+  }
+
+  printf("jeg er ikke et null\n");
+
+  new->right = (*tree)->left;
+               (*tree)->left = NULL;
+  new->left  = (*tree);
+  rebalance(new->left);
+  *tree = new;
   return;
 }
+
+void rebalance(bNode *top) {
+  /*
+  if (top->left == NULL) {
+    top->left = top->right;
+    top->right = NULL;
+    return;
+  }
+  */
+  if (top->right == NULL)
+    return;
+  top->left = top->right;
+  top->right = top->left->left;
+               top->left->left = NULL;
+  rebalance (top->left);
+}
+
 
 void addR(Tree tree, Data new_el) {
   // navigate to last element (use size), insert there
@@ -58,7 +93,10 @@ Data remvL(Tree tree) {
 Data remvR(Tree tree) {
   // use size to navigate through the tree recursively (helper del)
   // before deleting, call lookup to retrieve the data that is returned
-  return 0;
+  int tsize = size(tree);
+  Data result = lookup(tree,tsize-1);
+  del(tree,tsize-1);
+  return result;
 }
 
 Data lookup(Tree tree, int i) {
@@ -129,5 +167,39 @@ void combine(Tree t1, Tree t2) {
 // delete last element, knowing the size is i >= 0 (recursive)
 void del(Tree tree, int i) {
   // navigate through the tree to find the last element (i is size).
+  if (i < 0) { error("del recieved invalid index");}
+  if (i == 0) {
+    free(*tree);
+    return;
+  }
+  if (i == 1) {
+    free((*tree)->left);
+    (*tree)->left = NULL;
+    return;
+  }
+  if (i == 2) {
+    free((*tree)->right);
+    (*tree)->right = NULL;
+    return;
+  }
+  if (odd(i)) { // if i odd: delete from left subtree
+    del(&((*tree)->left), half(i));
+  } else {      // if even: delete from right subtree
+    del(&((*tree)->right), half(i)-1);
+  }
+
   return;
+}
+
+
+void printNode(bNode *node, int depth) {
+  if (node == NULL)
+    return;
+  printf("depth:%i, data:%lf\n",depth,node->el);
+  printNode(node->left,depth+1);
+  printNode(node->right,depth+1);
+}
+
+void printTree(Tree tree) {
+  printNode(*tree,0);
 }
