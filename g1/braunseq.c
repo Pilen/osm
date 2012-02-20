@@ -49,8 +49,6 @@ void addL(Tree tree, Data new_el){
     return;
   }
 
-  printf("jeg er ikke et null\n");
-
   new->right = (*tree)->left;
                (*tree)->left = NULL;
   new->left  = (*tree);
@@ -191,15 +189,3 @@ void del(Tree tree, int i) {
   return;
 }
 
-
-void printNode(bNode *node, int depth) {
-  if (node == NULL)
-    return;
-  printf("depth:%i, data:%lf\n",depth,node->el);
-  printNode(node->left,depth+1);
-  printNode(node->right,depth+1);
-}
-
-void printTree(Tree tree) {
-  printNode(*tree,0);
-}
