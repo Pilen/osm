@@ -114,11 +114,47 @@ Vi har derfor rettet remv, så der nu er byttet om på de to betingelser i while
 Til Søren!
 
 \section{Opgave 2 - Fleksible arrays med Brauntræer}
-Brauntræer er binære træer, hvor hvert subtræ har det samme antal knuder, eller det venstre har kun en mere end det højre. Disse træer skal bruges til at implementere fleksible arrays.
+Brauntræer er binære træer, hvor hvert undertræ har det samme antal knuder, eller det venstre har kun en mere end det højre. Disse træer skal bruges til at implementere fleksible arrays.
 
 \subsection{Implementation af addL}
+Funktionen addL skal indsætte et nyt element i starten af array'et. Dette vil sige at elementet skal indsættes som den nye rod i træet, og derefter skal resten af træet ordnes, så det stadig er et Brauntræ. Til at starte med skal der laves plads til det nye element med malloc, og elementet skal oprettes med data og pegere. Hvis træet er tomt er det nemt, da elmentet bare skal indsættes som det første element. Når man indsætter elementer i et Brauntræ skal det sikres at træet hele vejen ned igennem overholder reglerne for dette, og derfor er man nødt til at flytte rundt på de forskellige grene af træet, når der indsættes et nyt element. Det nye element/den nye rod skal have den gamle rods venstre undertræ som sit højre undertræ. Derudover skal den gamle rod og dens højre undertræ lægges ind som den nye rods højre undertræ. Dette giver et noget skævt balanceret træ, som det kan ses nedenfor.
+
+\begin{figure}[tb!]
+  \centering
+  \begin{center}
+\begin{verbatim}
+
+    Originalt træ:           Nyt træ:
+
+         2                      3
+     ----|----              ----|----
+     |       |              |       |
+     |       |              |       |
+     1       0              2       1
+   --|--   --|--          --|--   --|--
+   |   |   |   |          |   |   |   |
+   x   x   x   x          x   0   x   x
+
+\end{verbatim}
+  \end{center}
+  \caption{addL: nyt element indsat}
+  \label{fig:addl}
+\end{figure}
+
+Det er derfor nødvendigt rekursivt at gennemløbe træets venstre side for at sørge for at det stadig er et Brauntræ. Det gør vi med hjælpefunktionen rebalance. Rebalance kaldes med new$\rightarrow$left - i dette tilfælde 2, og dette er nu toppen i det undertræ, som vi rebalancerer. Der fortsættes med rebalancering indtil der findes et undertræ med en højrepeger, som peger på NULL, i hvilket tilfælde vi er færdige med at balancere træet, og vi igen burde have et fint Brauntræ.
 
 \subsection{Implementation af remvR}
+Funktionen remvR skal fjerne det sidste element i træet. Til dette skal vi bruge størrelsen på træet, som vi finder ved hjælp af size, som allerede er implementeret. Derudover skal lookup kaldes, så vi får fat i den data, som vi skal have ud af træet, inden elementet slettes. Til selve sletningen bruges en hjælpefunktion (del), som tager træet selv, og dets størrelse som parametre. Vi skal huske at trække 1 fra størrelsen vi kalder del med, da denne gerne skal pege på det sidste element, og size først stopper når der ikke er flere elementer.\\
+
+Hjælpefunktionen del står for selve sletningen af elementet. Der er 5 forskellige basistilfælde, som beskrives nedenfor. 
+
+\begin{itemize}
+\item size<0: Ikke-validt index, og funktionen afsluttes. 
+\item size==0: Træ med et element. Hvis vi sletter det ene element i træet, svarer det til at slette hele træet. Vi kalder free på træets peger, og fjerner denne fra maskinens hukommelse. 
+\item size==1: Træ med to elementer - roden og et venstre barn. Vi vil derfor gerne slette det venstre barn. Dette gøres ved at kalde free på rodens venstre peger, og derefter sætte denne til NULL.
+\item size==2: Træ med tre elementer - roden og både et højre og et venstre barn. Da Brauntræer skal være binære med evt. overvægt til venstre er det denne gang det højre barn, der skal slettes, og vi kalder derfor free på rodens højre peger, og sætter denne til NULL.
+\item andet: Hvis der er flere elementer i træet skal vi arbejde os nedad træet i dybden for at finde det sidste element. Dette gør vi ved at bruge funktionen odd(i) for at fortælle os om vi skal bevæge os ned i det venstre eller det højre undertræ. Derefter kaldes del igen med det gældende subtræ med rodens enten højre eller venstre barn som den nye rod.
+\end{itemize}
 
 \subsection{Testprogram til ovenstående implemenationer}
 
