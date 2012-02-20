@@ -1,0 +1,54 @@
+\documentclass[10pt,a4paper,danish]{article}
+\usepackage[danish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xfrac}
+\usepackage[dot, autosize, outputdir="dotgraphs/"]{dot2texi}
+\usepackage{tikz}
+\usetikzlibrary{shapes}
+
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot{}
+\rhead{\today}
+\rfoot{\thepage}
+\setlength\parskip{1em}
+\setlength\parindent{1em}
+
+%% Titel og forfatter
+\title{}
+\author{Maria Caroline Miller, 040779, twq135}
+
+%% Start dokumentet
+\begin{document}
+
+%% Vis titel
+\maketitle
+\newpage
+
+%% Vis indholdsfortegnelse
+\tableofcontents
+\newpage
+
+\section{Opgave 1 - Hægtede lister - list.c og list.h}
+
+\subsection{Implementation af length and head}
+Length skal finde længden af en liste, og returnere denne. Med en simpel while-løkke løbes listen igennem, indtil pegeren peger på NULL. For hver gang lægges 1 til variablen len, og pegeren flyttes til næste element i listen med start = start-\>next.\\
+\\
+Head svarer til det første element i en given liste. Dette kan derfor nemt gøres ved returnere start-\>content, som indeholder første elements data. Det er dog vigtigt lige at tjekke om listen eventuelt er tom, og i så tilfælde returnere NULL.
+
+\subsection{Implementation af append og prepend}
+Prepend tilføjer et element forrest i den hægtede liste. Til at starte med kræves det at man laver plads til et nyt element ved hjælp af malloc. Vi har valgt at kopiere out\_of\_memory fra den polske lommeregner fra øvelsestimen, og denne afslutter programmet hvis der ikke er mere plads i hukommelsen. Derefter oprettes elementet med sin data og dens next-peger sættes til at pege på det gamle første element, specificeret ved \*start. Derefter sættes \*start til at pege på den nye element.\\
+\\
+Append tilføjer et element i slutningen af listen. Igen skal der laves plads til et nyt element ved hjælp af malloc, og det nye element oprettes med data og peger. Hvis listen er tom, kalder vi prepend, som tilføjer et element i starten af listen. Ellers skal vi løbe listen igennem indtil vi finder et element hvis next-peger peger på NULL. Dette er det sidste element i den allerede oprettede liste. Dens peger sættes til at pege på det nys oprettede element istedet for NULL.
+
+\subsection{Årsager til brug af typen Listnode\*\* start}
+
+
+\end{document}
