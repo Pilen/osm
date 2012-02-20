@@ -116,17 +116,17 @@ Så istedet for at sætte nye elementer bag på listen, sættes de foran med pre
 Da man i en traditionel stak kun arbejder med det øverste element er der ingen grund til at traversere hele listen for at pushe og poppe. Ved altid at indsætte nye elementer forrest betyder det at push, pop og top kan gøres i konstant tid i modsat til lineærtid hvis hele listen skulle traverseres. For nemhedens skyld har vi dog implenteret empty med length funktionen som betyder at den kører i lineær tid selv om det kunne gøres med en test om der eksisterer bare et element i listen.
 
 
-stack_init er en dummy funktion der intet foretager sig.
+stack\_init er en dummy funktion der intet foretager sig.
 I modsætning til den oprindelige implementation er der ikke noget data der skal initialiseres. Men for at overholde headerfilen har vi implementeret en funktion der ikke gør noget.
 
-stack_empty er en simpel test om lengden af listen er lig med 0.
+stack\_empty er en simpel test om lengden af listen er lig med 0.
 
-stack_top er et kald til head.
+stack\_top er et kald til head.
 
-stack_push er et kald til prepend.
+stack\_push er et kald til prepend.
 Da liste implementationen har sin egen fejl håndtering hvor programmet afsluttes hvis der ikke kan allokeres plads vil prepend funktionen have allokeret plads korrekt hvis den returnerer og vi kan derfor altid returnere 0.
 
-stack_pop er lidt mere krævende da der ikke findes en tilsvarende funktion i list.h.
+stack\_pop er lidt mere krævende da der ikke findes en tilsvarende funktion i list.h.
 funktionen river derfor manuelt hovedet af listen, deallokerer hukkomelsen, sætter stackpegepinden til at pege på det nye øverste element og returnerer indholdet af det tidligere hoved.
 
 \section{Opgave 2 - Fleksible arrays med Brauntræer}
