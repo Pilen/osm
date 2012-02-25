@@ -1,0 +1,142 @@
+\documentclass[10pt,a4paper,danish]{article}
+\usepackage[danish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xfrac}
+\usepackage[dot, autosize, outputdir="dotgraphs/"]{dot2texi}
+\usepackage{tikz}
+\usetikzlibrary{shapes}
+
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot{}
+\rhead{\today}
+\rfoot{\thepage}
+\setlength\parskip{1em}
+\setlength\parindent{1em}
+
+%% Titel og forfatter
+\title{}
+\author{Maria Caroline Miller, 040779, twq135 \\ Søren Pilgård, 190689, vpb984}
+
+%% Start dokumentet
+\begin{document}
+
+%% Vis titel
+\maketitle
+\newpage
+
+%% Vis indholdsfortegnelse
+\tableofcontents
+\newpage
+
+\section{Opgave 1 - Hægtede lister - list.c og list.h}
+
+\subsection{Implementation af length and head}
+Length skal finde længden af en liste, og returnere denne. Med en simpel while-løkke løbes listen igennem, indtil pegeren peger på NULL. For hver gang lægges 1 til variablen len, og pegeren flyttes til næste element i listen med start = start$\rightarrow$next.\\
+\\
+Head svarer til det første element i en given liste. Dette kan derfor nemt gøres ved returnere start$\rightarrow$content, som indeholder første elements data. Det er dog vigtigt lige at tjekke om listen eventuelt er tom, og i så tilfælde returnere NULL.
+
+\subsection{Implementation af append og prepend}
+Prepend tilføjer et element forrest i den hægtede liste. Til at starte med kræves det at man laver plads til et nyt element ved hjælp af malloc. Vi har valgt at kopiere out\_of\_memory fra den polske lommeregner fra øvelsestimen, og denne afslutter programmet hvis der ikke er mere plads i hukommelsen. Derefter oprettes elementet med sin data og dens next-peger sættes til at pege på det gamle første element, specificeret ved *start. Derefter sættes *start til at pege på den nye element.\\
+\\
+Append tilføjer et element i slutningen af listen. Igen skal der laves plads til et nyt element ved hjælp af malloc, og det nye element oprettes med data og peger. Hvis listen er tom, kalder vi prepend, som tilføjer et element i starten af listen. Ellers skal vi løbe listen igennem indtil vi finder et element hvis next-peger peger på NULL. Dette er det sidste element i den allerede oprettede liste. Dens peger sættes til at pege på det nys oprettede element istedet for NULL.
+
+\subsection{Årsager til brug af typen Listnode** start}
+
+\begin{figure}[tb!]
+  \centering
+  \begin{center}
+\begin{verbatim}
+                   |________|
+                   |        |
+kalder:            |________|
+start --------     |        |
+                |  |________|
+prepend:        |  |        |
+start-------|   |  |________|
+            |   -> |cont    |
+            |----> |________|
+                   |next    |
+                   |________|
+                   |        |
+                   |________|
+                   |        |
+\end{verbatim}
+  \end{center}
+  \caption{prepend(Listnode *start, Data elem)}
+  \label{fig:prependstar}
+\end{figure}
+
+\begin{figure}[htb!]
+  \centering
+  \begin{center}
+\begin{verbatim}
+                   |________|
+                   |        |
+kalder:            |________|
+start -----------> |Addresse|--
+            -----> |________|  |
+prepend:    |      |        |  |
+start-------|      |________|  |
+                   |cont    |<-
+                   |________|
+                   |next    |
+                   |________|
+                   |        |
+                   |________|
+                   |        |
+\end{verbatim}
+  \end{center}
+  \caption{prepend(Listnode **start, Data elem)}
+  \label{fig:prependstarstar}
+\end{figure}
+
+I figur \ref{fig:prependstar} ses hvordan en kaldende funktion kalder prepend med en peger direkte til første element. Prepend virker ved at oprette en ny hægte med den tidligere forreste hægte som dens næste. Problemet er dog at vi fra prepend-funktionen ikke kan gøre den kaldende funktion klar over at listen ikke længere starter det samme sted. Prepend's startvariabel er lokal så ændringer propageres ikke tilbage til kalderen som stadig ser det samme element som det første.\\
+\\
+I figur \ref{fig:prependstarstar} ses løsningen. Her kaldes prepend med en peger til en peger i hukommelsen som peger til det første element i listen. Så selv om ændringer af start ikke propageres tilbage til start kan vi ændre i det som start peger på. Altså addressen til det første element i listen.\\
+\\
+I normale tilfælde vil det ikke være nødvendigt med en pegerpeger som argument til append. Append skal bare vide hvor listen starter og følge den til den når enden hvor den så indsætter et nyt element.
+Men fordi append også skal kunne håndtere at indsætte elementer i en tom liste er vi nødt til at bruge en pegerpeger. Ellers ville vi stå i den situation at vi ikke kunne ændre listen til at pege på det første element. Problemstillingen er dermed tilsvarende som for prepend. Dette er især tydeligt da vi i vores løsning har sagt at hvis der kaldes append på den tomme liste svarer det til en prepend, så vi kalder blot prepend-funktionen.
+
+\subsection{Remv}
+I den udleverede kode til remv løbes listen igennem indtil det første match på data mødes, og hvis et sådant findes slettes dette element i listen, og der returneres. Hvis ikke gør funktionen ikke noget. Der er dog et problem med while-løkken i funktionen - eller rettere med rækkefølgen af betingelserne til while-løkken. I den udleverede version tjekkes der først på om det nuværende elements data matcher, og derefter på om det nuværende element er NULL. Hvis man forestiller sig at man har løbet hele listen igennem uden at finde et match, og nu befinder sig på sidste element. Dette passer heller ikke, og while-løkken rykker videre til næste element. curr bliver herefter sat til det som curr$\rightarrow$next peger på - i dette tilfælde NULL. Når man næste gang skal kigge på betingelserne i while-løkken prøver den hermed at lave et match på NULL, da curr$\rightarrow$content ikke eksisterer i NULL. Den anden betingelse tester på om curr==NULL. Det er derfor ønskværdigt at de to betingelser bytter plads, da C's \&\& operator garanterer venstre-mod-højre evaluering, og vi derfor kan sikre os mod at vi prøver at køre match på NULL.\\
+
+Vi har derfor rettet remv, så der nu er byttet om på de to betingelser i while-løkken.
+
+\subsection{Brug af vores hægtede liste som stack til calc.c}
+
+For at optimere implementationen af stakke har vi valgt at bruge en liste forfra.
+Så istedet for at sætte nye elementer bag på listen, sættes de foran med prepend.
+Da man i en traditionel stak kun arbejder med det øverste element er der ingen grund til at traversere hele listen for at pushe og poppe. Ved altid at indsætte nye elementer forrest betyder det at push, pop og top kan gøres i konstant tid i modsat til lineærtid hvis hele listen skulle traverseres. For nemhedens skyld har vi dog implenteret empty med length funktionen som betyder at den kører i lineær tid selv om det kunne gøres med en test om der eksisterer bare et element i listen.
+
+
+stack_init er en dummy funktion der intet foretager sig.
+I modsætning til den oprindelige implementation er der ikke noget data der skal initialiseres. Men for at overholde headerfilen har vi implementeret en funktion der ikke gør noget.
+
+stack_empty er en simpel test om lengden af listen er lig med 0.
+
+stack_top er et kald til head.
+
+stack_push er et kald til prepend.
+Da liste implementationen har sin egen fejl håndtering hvor programmet afsluttes hvis der ikke kan allokeres plads vil prepend funktionen have allokeret plads korrekt hvis den returnerer og vi kan derfor altid returnere 0.
+
+stack_pop er lidt mere krævende da der ikke findes en tilsvarende funktion i list.h.
+funktionen river derfor manuelt hovedet af listen, deallokerer hukkomelsen, sætter stackpegepinden til at pege på det nye øverste element og returnerer indholdet af det tidligere hoved.
+
+\section{Opgave 2 - Fleksible arrays med Brauntræer}
+Brauntræer er binære træer, hvor hvert subtræ har det samme antal knuder, eller det venstre har kun en mere end det højre. Disse træer skal bruges til at implementere fleksible arrays.
+
+\subsection{Implementation af addL}
+
+\subsection{Implementation af remvR}
+
+\subsection{Testprogram til ovenstående implemenationer}
+
+\end{document}
