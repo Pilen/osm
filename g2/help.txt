@@ -1,0 +1,14 @@
+Når en proces dør gøres følgende:
+
+Hvis en forældre kører
+     zombie
+ellers
+	fri
+frigør zombie-børn
+gør børn til forældreløse
+gem returværdi i tabel
+
+processer i tabellen kan være kørende, zombie eller fri
+opret processtabel - instantier alt til at være fri
+
+processstart(bootargs.get("init..")
