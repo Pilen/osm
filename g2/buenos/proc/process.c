@@ -352,6 +352,9 @@ void process_finish(int retval) {
 
   //Mommy might be sleeping, lets wake her up.
   sleepq_wake(&(process_table[pid].pid));
+  
+  vm_destroy_pagetable(thread_get_current_thread_entry()->pagetable);
+  thread_get_current_thread_entry()->pagetable = NULL;
 
   spinlock_release(&process_table_slock);
   _interrupt_set_state(intr_status);
@@ -388,7 +391,7 @@ int process_join(process_id_t pid) {
 void process_init(void) {
   int i;
   spinlock_reset(&process_table_slock);
-
+  
   /* Init all entries */
   for (i=0; i<CONFIG_MAX_PROCESSES; i++) {
     process_clear(i);

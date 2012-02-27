@@ -43,8 +43,6 @@
 #include "drivers/device.h"
 #include "drivers/gcd.h"
 
-/** Spinlock which must be held while writing */
-spinlock_t syscall_write_slock;
 
 /**
  * Handle system calls. Interrupts are enabled when this function is
@@ -126,7 +124,7 @@ void syscall_handle(context_t *user_context)
         KERNEL_PANIC("Unable to write to handles other than STDOUT");
       break;
 
-    default: 
+    default:
         KERNEL_PANIC("Unhandled system call\n");
     }
 
