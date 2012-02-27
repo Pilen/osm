@@ -59,9 +59,65 @@ void syscall_handle(context_t *user_context)
      * restored from user_context.
      */
     switch(user_context->cpu_regs[MIPS_REGISTER_A0]) {
+
+      //Takes no arguments, returns nothing.
     case SYSCALL_HALT:
         halt_kernel();
         break;
+
+        //Takes a char *executable, returns pid or negative number on error.
+    case SYSCALL_EXEC:
+      user_context->cpu_regs[MIPS_REGISTER_v0] = 
+        process_spawn(user_context->cpu_regs[MIPS_REGISTER_A1]);
+      break;
+
+      //Takes an int, never returns
+    case SYSCALL_EXIT:
+      process_finish(user_context->cpu_regs[MIPS_REGISTER_A1]);
+      break;
+
+      //Takes an pid, returns int
+    case SYSCALL_JOIN:
+      user_context->cpu_regs[MIPS_REGISTER_v0] = 
+        process_join(user_context->cpu_regs[MIPS_REGISTER_A1]);
+      break;
+
+    case SYSCALL_READ:
+      if (user_context->cpu_regs[MIPS_REGISTER_A1] == FILEHANDLE_STDIN) {
+        device_t *dev;
+        gcd_t *gcd;
+        dev = device_get(YAMS_TYPECODE_TTY, 0);
+        KERNEL_ASSERT(dev != NULL);
+
+        gcd = (gcd_t *)dev->generic_device;
+        KERNEL_ASSERT(gcd != NULL);
+
+        user_context->cpu_regs[MIPS_REGISTER_v0] = 
+          gcd->read(gcd,
+                    user_context->cpu_regs[MIPS_REGISTER_A2],
+                    user_context->cpu_regs[MIPS_REGISTER_A3]);
+      } else
+        KERNEL_PANIC("Unable to read from handles other than STDIN");
+      break;
+
+    case SYSCALL_WRITE:
+      if (user_context->cpu_regs[MIPS_REGISTER_A1] == FILEHANDLE_STDOUT){
+        device_t *dev;
+        gcd_t *gcd;
+        dev = device_get(YAMS_TYPECODE_TTY, 0);
+        KERNEL_ASSERT(dev != NULL);
+
+        gcd = (gcd_t *)dev->generic_device;
+        KERNEL_ASSERT(gcd != NULL);
+
+        user_context->cpu_regs[MIPS_REGISTER_v0] =
+          gcd->write(gcd,
+                     user_context->cpu_regs[MIPS_REGISTER_A2],
+                     user_context->cpu_regs[MIPS_REGISTER_A3]);
+      } else {
+        KERNEL_PANIC("Unable to write to handles other than STDOUT");
+      break;
+
     default: 
         KERNEL_PANIC("Unhandled system call\n");
     }
