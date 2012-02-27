@@ -36,14 +36,14 @@
 %% \tableofcontents
 %% \newpage
 
-\section{Reclaimer!}
-
+\section{Disclaimer}
+Programmet er ikke gennemtestet særlig grundigt, så vi garanterer ikke for om det kodede virker, men det oversætter!
 
 \section{1.a: Datastruktur for processer}
 Vores processer har forskellige oplysninger, som de skal have. De skal have noget at lave aka en executable, som beskriver den opgave, som processen udfører. Derudover er det vigtigt at de har et id, som de defineres på. De har en resultatvariabel, og en programtæller. En process skal også have en definition af hvilken tilstand den er - vi var valgt at de kan være kørende, frie eller zombie. Endelig har vores process også oplysninger om en evt. forælder, evt. børn, og dens søster.
 
 \section{1.b: Processtabel}
-Ud fra datastrukturen tilføjes i process.c en tabel, der kan indeholde alle vores processer. For at sætte en øvre grænse oprettes CONFIG\_MAX\_PROCESSES i kernel/config.h. Derudover defineres en spinlock, som skal holdes låst når man manipulerer med processtabellen.
+Ud fra datastrukturen tilføjes i process.c en tabel, der kan indeholde alle vores processer. Derudover defineres en spinlock, som skal holdes låst når man manipulerer med processtabellen.
 
 \section{1.c: Hjælpefunktioner}
 Der skal laves en række hjælpefunktioner til processstyring. Disse beskrives nedenfor. 
@@ -53,7 +53,7 @@ Init\_start\_up\_thread i main.c bruger process\_run istedet for process\_start,
 
 Main.c kalder process\_init.\\
 
-Vi har indført
+Vi har indført en grænse, der hedder CONFIG\_MAX\_PROCESSES i kernel/config.h, som sætter en øvre grænse for antallet af processer vi kan have kørende.
 
 \subsection{process\_spawn}
 Denne funktion opretter en ny kernetråd med en ny process. Der kaldes et interrupt, som låser cpu'en ved at sørge for at der ikke kan kaldes andre interrupts mens den arbejder. Derefter kalder den spinlock på processtabellen, så den kan arbejde i den. Der køres igennem processtabellen, indtil der findes en tom plads. Hvis tabellen er fuld løsnes spinlocken på tabellen, der åbnes op for interrupts igen, og systemet sender en fejlkode tilbage (aka pid er stadig -1).\\
