@@ -364,8 +364,10 @@ int process_join(process_id_t pid) {
 
   //pid must be legal;
   KERNEL_ASSERT(pid < CONFIG_MAX_PROCESSES);
+  KERNEL_ASSERT(pid >= 0);
+
   //Processes can only join children;
-  KERNEL_ASSERT(process_table[pid].parent = process_get_current_process());
+  KERNEL_ASSERT(process_table[pid].parent == process_get_current_process());
 
   intr_status = _interrupt_disable();
   spinlock_acquire(&process_table_slock);
