@@ -36,6 +36,9 @@
 %% \tableofcontents
 %% \newpage
 
+\section{Reclaimer!}
+
+
 \section{1.a: Datastruktur for processer}
 Vores processer har forskellige oplysninger, som de skal have. De skal have noget at lave aka en executable, som beskriver den opgave, som processen udfører. Derudover er det vigtigt at de har et id, som de defineres på. De har en resultatvariabel, og en programtæller. En process skal også have en definition af hvilken tilstand den er - vi var valgt at de kan være kørende, frie eller zombie. Endelig har vores process også oplysninger om en evt. forælder, evt. børn, og dens søster.
 
@@ -43,7 +46,14 @@ Vores processer har forskellige oplysninger, som de skal have. De skal have noge
 Ud fra datastrukturen tilføjes i process.c en tabel, der kan indeholde alle vores processer. For at sætte en øvre grænse oprettes CONFIG\_MAX\_PROCESSES i kernel/config.h. Derudover defineres en spinlock, som skal holdes låst når man manipulerer med processtabellen.
 
 \section{1.c: Hjælpefunktioner}
-Der skal laves en række hjælpefunktioner til processstyring. Disse beskrives nedenfor.
+Der skal laves en række hjælpefunktioner til processstyring. Disse beskrives nedenfor. 
+
+\subsection{Ændringer andre steder end process.c og process.h}
+Init\_start\_up\_thread i main.c bruger process\_run istedet for process\_start, for at skabe en process.\\
+
+Main.c kalder process\_init.\\
+
+Vi har indført
 
 \subsection{process\_spawn}
 Denne funktion opretter en ny kernetråd med en ny process. Der kaldes et interrupt, som låser cpu'en ved at sørge for at der ikke kan kaldes andre interrupts mens den arbejder. Derefter kalder den spinlock på processtabellen, så den kan arbejde i den. Der køres igennem processtabellen, indtil der findes en tom plads. Hvis tabellen er fuld løsnes spinlocken på tabellen, der åbnes op for interrupts igen, og systemet sender en fejlkode tilbage (aka pid er stadig -1).\\
@@ -68,7 +78,7 @@ Hvis processen, der skal afsluttes har en forælder, skal resultatet jo sendes v
 Hvis forælderen sover (aka venter på at dens børn bliver færdige med deres arbejde), skal den nu vækkes i sovekøen og have at vide at dens barneprocess er færdig. Og så skal spinlocken åbnes og interrupt tillades igen. Derefter afsluttes tråden med denne process.
 
 \subsection{process\_join}
-Join sætter en process til at vente på at dens barn bliver færdig med at lave sit arbejde, så den kan samle resultatet op, og bruge dette i sit videre arbejde. Oprindeligt var funktionen af typen uint32\_t. Dette er lavet om til at være af typen int, fordi Søren! \\
+Join sætter en process til at vente på at dens barn bliver færdig med at lave sit arbejde, så den kan samle resultatet op, og bruge dette i sit videre arbejde. Oprindeligt var funktionen af typen uint32\_t. Dette er lavet om til at være af typen int, fordi SØREN \\
 
 Der checkes på om pid overhovedet er legalt (aka eksisterer i vores processtabel) og om den nuværende kørende process er forældre til det pid, som vi prøver at joine med. Dette er fordi man kun kan joine med sine egne børn.\\
 
@@ -86,13 +96,21 @@ Sætter tråden til at afvikle det program som processen skal køre. Den henter 
 For at gøre det nemmere at instantiere en ny tabel er lagt ud i en ny hjælpefil.
 
 \section{Opgave 2: Systemkald}
+Den kode som vi har genereret ovenfor skal helst kun kunne kaldes af kernen selv, og ikke direkte af brugeren. Til dette skal vi bruge ongle såkaldte systemkald, som brugerdelen af vores maskine kan kalde, når de gerne vil have udført en funktion.
 
 \subsection{syscall\_exec(const char *filename)}
-\subsection{syscall\_exit(int retval)}
-\subsection{syscall\_join(int pid)}
-\subsection{syscall\_read(int fhandle, void *buffer, int length)}
-\subsection{syscall\_write(int fhandle, const void *buffer, int length)}
+Exec bruger vores funktion process\_spawn, som den kalder med den user\_context der ligger i den pågældende tråd. Den information ligger gemt i register A1. Resultatet gemmes i registret V0, som brugeren kan tilgå.
 
-Vi har tilføjet CONFIG\_MAX\_PROCESSES til kernel/config.h
-process\_join er ændret til at være int for at passe med process\_finish. Det giver mening at processer kan returnere negative værdier.
+\subsection{syscall\_exit(int retval)}
+Exit bruger funktionen process\_finish, som den kalder med den information brugerdelen har lagt i register A1. Den returnerer ikke noget, da man i dette tilfælde dræber tråden, og der derfor ikke skal bruges noget resultat.
+
+\subsection{syscall\_join(int pid)}
+Join bruger funktionen process\_join, som den kalder med informationen der ligger i A1, og returnerer resultatet i V0.
+
+\subsection{syscall\_read(int fhandle, void *buffer, int length)}
+Der er valgt ikke at bruge låse, da gcd->read i tty.c bliver sat til at køre funktionen tty\_read, og denne sørger pænt for både at sætte interrupts og spinlocks. Denne funktion kræver alle tre argumenter i registrene A1, A2 og A3, og disse sender derfor med. Resultatet af læsningen gemmes i register V0. Det er dog vigtigt at bemærke at læsningen ikke indsætter $\backslash$0 i slutningen af det læste, og hvis brugeren derfor skal bruges resultatet som en streng, skal man huske at sætte det bagefter, da brugerfunktioner typisk bruger dette til at markere slutningen af en streng.
+
+\subsection{syscall\_write(int fhandle, const void *buffer, int length)}
+Write brugre det samme system som read, bortset fra der kaldes tty\_write i stedet. Den låser også pænt interrupts og spinlock. Brugeren skal i dette tilfælde huske at den længde der skal skrives skal være uden afslutningen $\backslash$0, da det muligvis vil give fejl senere hen.
+
 \end{document}
