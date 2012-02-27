@@ -55,7 +55,7 @@
 /** Spinlock which must be held when manipulating the process table */
 spinlock_t process_table_slock;
 
-/** The table containing all processesin the system, whether actve or not */
+/** The table containing all processes in the system, whether active or not */
 process_table_t process_table[CONFIG_MAX_PROCESSES];
 
 void process_clear(process_id_t pid);
