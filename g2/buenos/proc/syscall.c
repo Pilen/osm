@@ -39,6 +39,12 @@
 #include "kernel/panic.h"
 #include "lib/libc.h"
 #include "kernel/assert.h"
+#include "proc/process.h"
+#include "drivers/device.h"
+#include "drivers/gcd.h"
+
+/** Spinlock which must be held while writing */
+spinlock_t syscall_write_slock;
 
 /**
  * Handle system calls. Interrupts are enabled when this function is
@@ -65,10 +71,10 @@ void syscall_handle(context_t *user_context)
         halt_kernel();
         break;
 
-        //Takes a char *executable, returns pid or negative number on error.
+        //Takes a const char *, returns pid or negative number on error.
     case SYSCALL_EXEC:
-      user_context->cpu_regs[MIPS_REGISTER_v0] = 
-        process_spawn(user_context->cpu_regs[MIPS_REGISTER_A1]);
+      user_context->cpu_regs[MIPS_REGISTER_V0] = 
+        process_spawn((const char *) user_context->cpu_regs[MIPS_REGISTER_A1]);
       break;
 
       //Takes an int, never returns
@@ -76,12 +82,13 @@ void syscall_handle(context_t *user_context)
       process_finish(user_context->cpu_regs[MIPS_REGISTER_A1]);
       break;
 
-      //Takes an pid, returns int
+      //Takes an int, returns int
     case SYSCALL_JOIN:
-      user_context->cpu_regs[MIPS_REGISTER_v0] = 
+      user_context->cpu_regs[MIPS_REGISTER_V0] = 
         process_join(user_context->cpu_regs[MIPS_REGISTER_A1]);
       break;
 
+      //Takes an int, void * and an int, returns an int
     case SYSCALL_READ:
       if (user_context->cpu_regs[MIPS_REGISTER_A1] == FILEHANDLE_STDIN) {
         device_t *dev;
@@ -92,9 +99,9 @@ void syscall_handle(context_t *user_context)
         gcd = (gcd_t *)dev->generic_device;
         KERNEL_ASSERT(gcd != NULL);
 
-        user_context->cpu_regs[MIPS_REGISTER_v0] = 
+        user_context->cpu_regs[MIPS_REGISTER_V0] = \
           gcd->read(gcd,
-                    user_context->cpu_regs[MIPS_REGISTER_A2],
+                    (void *)user_context->cpu_regs[MIPS_REGISTER_A2],
                     user_context->cpu_regs[MIPS_REGISTER_A3]);
       } else
         KERNEL_PANIC("Unable to read from handles other than STDIN");
@@ -104,17 +111,18 @@ void syscall_handle(context_t *user_context)
       if (user_context->cpu_regs[MIPS_REGISTER_A1] == FILEHANDLE_STDOUT){
         device_t *dev;
         gcd_t *gcd;
+
         dev = device_get(YAMS_TYPECODE_TTY, 0);
         KERNEL_ASSERT(dev != NULL);
 
         gcd = (gcd_t *)dev->generic_device;
         KERNEL_ASSERT(gcd != NULL);
 
-        user_context->cpu_regs[MIPS_REGISTER_v0] =
+        user_context->cpu_regs[MIPS_REGISTER_V0] = \
           gcd->write(gcd,
-                     user_context->cpu_regs[MIPS_REGISTER_A2],
+                     (const void *) user_context->cpu_regs[MIPS_REGISTER_A2],
                      user_context->cpu_regs[MIPS_REGISTER_A3]);
-      } else {
+      } else
         KERNEL_PANIC("Unable to write to handles other than STDOUT");
       break;
 
