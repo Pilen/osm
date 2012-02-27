@@ -33,13 +33,38 @@
 \newpage
 
 %% Vis indholdsfortegnelse
-\tableofcontents
-\newpage
+%% \tableofcontents
+%% \newpage
+
+\section{1.a: Datastruktur for processer}
+Vores processer har forskellige oplysninger, som de skal have. De skal have noget at lave aka en executable, som beskriver den opgave, som processen udfører. Derudover er det vigtigt at de har et id, som de defineres på. De har en resultatvariabel, og en programtæller. En process skal også have en definition af hvilken tilstand den er - vi var valgt at de kan være kørende, frie eller zombie. Endelig har vores process også oplysninger om en evt. forælder, evt. børn, og dens søster.
+
+\section{1.b: Processtabel}
+Ud fra datastrukturen tilføjes i process.c en tabel, der kan indeholde alle vores processer. For at sætte en øvre grænse oprettes CONFIG\_MAX\_PROCESSES i kernel/config.h. Derudover defineres en spinlock, som skal holdes låst når man manipulerer med processtabellen.
+
+\section{1.c: Hjælpefunktioner}
+Der skal laves en række hjælpefunktioner til processstyring. Disse beskrives nedenfor.
+
+\subsection{process\_spawn}
+Denne funktion opretter en ny kernetråd med en ny process. Der kaldes et interrupt, som låser cpu'en ved at sørge for at der ikke kan kaldes andre interrupts mens den arbejder. Derefter kalder den spinlock på processtabellen, så den kan arbejde i den. Der køres igennem processtabellen, indtil der findes en tom plads. Hvis tabellen er fuld løsnes spinlocken på tabellen, der åbnes op for interrupts igen, og systemet sender en fejlkode tilbage (aka pid er stadig -1).\\
+
+Der er lavet en løsning, som sørger for at næste gang der oprettes en ny process, starter man med at kigge tabellen fra indgangen efter hvor man sidste gang oprettede en process, hvilket burde give bedre chance for hurtigt at finde en tom plads.\\
+
+Tabellen initialiseres derefter med oplysningerne om den nye process, og der oprettes derefter en ny kernetråd med denne nye process. Derefter løftes spinlocken på tabellen, og interrupts bliver igen mulige. 
+
+\subsection{process\_run}
+
+
+\subsection{process\_get\_current\_process}
+
+\subsection{process\_finish}
+
+\subsection{process\_join}
+
+\subsection{process\_init}
 
 \section{}
 
-\section{}
-
-Vi har tilføjet CONFIG_MAX_PROCESSES til kernel/config.h
-process_join er ændret til at være int for at passe med process_finish. Det giver mening at processer kan returnere negative værdier.
+Vi har tilføjet CONFIG\_MAX\_PROCESSES til kernel/config.h
+process\_join er ændret til at være int for at passe med process\_finish. Det giver mening at processer kan returnere negative værdier.
 \end{document}
