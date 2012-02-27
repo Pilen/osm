@@ -40,6 +40,7 @@
 #include "kernel/assert.h"
 #include "kernel/interrupt.h"
 #include "kernel/config.h"
+#include "kernel/sleepq.h"
 #include "fs/vfs.h"
 #include "drivers/yams.h"
 #include "vm/vm.h"
@@ -50,6 +51,14 @@
  *
  * This module contains a function to start a userland process.
  */
+
+/** Spinlock which must be held when manipulating the process table */
+spinlock_t process_table_slock;
+
+/** The table containing all processesin the system, whether actve or not */
+process_table_t process_table[CONFIG_MAX_PROCESSES];
+
+void process_clear(process_id_t pid);
 
 /**
  * Starts one userland process. The thread calling this function will
@@ -186,5 +195,221 @@ void process_start(const char *executable)
 
     KERNEL_PANIC("thread_goto_userland failed.");
 }
+
+
+void process_launch(uint32_t pid) {
+  interrupt_status_t intr_status;
+
+  intr_status = _interrupt_disable();
+  spinlock_acquire(&process_table_slock);
+
+  thread_get_current_thread_entry()->process_id = (process_id_t) pid;
+  process_start(process_table[process_get_current_process()].executable);
+
+  spinlock_release(&process_table_slock);
+  _interrupt_set_state(intr_status);
+}
+process_id_t process_spawn(const char *executable) {
+  static process_id_t next_pid = 0;
+  process_id_t i, pid = -1;
+  interrupt_status_t intr_status;
+
+  intr_status = _interrupt_disable();
+  spinlock_acquire(&process_table_slock);
+
+  //Find an available spot in the process table.
+  for (i=0; i<CONFIG_MAX_PROCESSES; i++) {
+    process_id_t p = (i + next_pid) % CONFIG_MAX_PROCESSES;
+
+    if (process_table[p].state == PROCESS_FREE) {
+      pid = p;
+      break;
+    }
+  }
+
+  //Is the process table full?
+  if (pid < 0) {
+    spinlock_release(&process_table_slock);
+    _interrupt_set_state(intr_status);
+    return pid;
+  }
+
+  //Let next_pid point to the next position in the array
+  next_pid = (pid+1) % CONFIG_MAX_PROCESSES;
+
+  //Initialize table
+  process_table[pid].executable = executable;
+  process_table[pid].pid = pid;
+  process_table[pid].state = PROCESS_RUNNING;
+  process_table[pid].result = 0;
+  process_table[pid].program_counter = 0;
+  process_table[pid].parent = process_get_current_process();
+  process_table[pid].child = -1;
+  process_table[pid].next_sibling = -1;
+
+  //should we unlock first?
+  thread_run(thread_create(process_launch, 0));
+
+  spinlock_release(&process_table_slock);
+  _interrupt_set_state(intr_status);
+
+  return pid;
+}
+
+/** 
+ *
+ * Asserts thread isn't already running a process.
+ */
+int process_run(const char *executable) {
+  static process_id_t next_pid = 0;
+  process_id_t i, pid = -1;
+  interrupt_status_t intr_status;
+
+  KERNEL_ASSERT(thread_get_current_thread_entry()->process_id < 0);
+
+  intr_status = _interrupt_disable();
+  spinlock_acquire(&process_table_slock);
+
+  //Find an available spot in the process table.
+  for (i=0; i<CONFIG_MAX_PROCESSES; i++) {
+    process_id_t p = (i + next_pid) % CONFIG_MAX_PROCESSES;
+
+    if (process_table[p].state == PROCESS_FREE) {
+      pid = p;
+      break;
+    }
+  }
+
+  //Is the process table full?
+  if (pid < 0) {
+    spinlock_release(&process_table_slock);
+    _interrupt_set_state(intr_status);
+    return pid;
+  }
+
+  //Let next_pid point to the next position in the array
+  next_pid = (pid+1) % CONFIG_MAX_PROCESSES;
+
+  //Initialize table
+  process_table[pid].executable = executable;
+  process_table[pid].pid = pid;
+  process_table[pid].state = PROCESS_RUNNING;
+  process_table[pid].result = 0;
+  process_table[pid].program_counter = 0;
+  process_table[pid].parent = -1;
+  process_table[pid].child = -1;
+  process_table[pid].next_sibling = -1;
+
+  spinlock_release(&process_table_slock);
+  _interrupt_set_state(intr_status);
+
+  process_start(executable);
+
+  return 0;
+}
+process_id_t process_get_current_process(void) {
+  interrupt_status_t intr_status;
+
+  intr_status = _interrupt_disable();
+  process_id_t current_process_id = thread_get_current_thread_entry()->process_id;
+  _interrupt_set_state(intr_status);
+
+  return current_process_id;
+}
+
+void process_finish(int retval) {
+  interrupt_status_t intr_status;
+  process_id_t pid;
+  process_id_t child;
+
+  intr_status = _interrupt_disable();
+  spinlock_acquire(&process_table_slock);
+
+  pid = process_get_current_process();
+
+
+
+  // Itterate over all the children
+  child = process_table[pid].child;
+  while (child >= 0) {
+    // If child is zombie, clear it
+    if (process_table[child].state == PROCESS_ZOMBIE)
+      process_clear(child);
+    // Else its an orphan
+    else
+      process_table[child].parent = -1;
+
+    child = process_table[child].next_sibling;
+  }
+
+  //If process has a parent, wait to be joined
+  if (process_table[pid].parent >= 0) {
+    process_table[pid].result = retval;
+    process_table[pid].state = PROCESS_ZOMBIE;
+  } else {
+    process_clear(pid);
+  }
+
+  //Mommy might be sleeping, lets wake her up.
+  sleepq_wake(&(process_table[pid].pid));
+
+  spinlock_release(&process_table_slock);
+  _interrupt_set_state(intr_status);
+  thread_finish();
+}
+
+int process_join(process_id_t pid) {
+  interrupt_status_t intr_status;
+  int result;
+
+  //pid must be legal;
+  KERNEL_ASSERT(pid < CONFIG_MAX_PROCESSES);
+  //Processes can only join children;
+  KERNEL_ASSERT(process_table[pid].parent = process_get_current_process());
+
+  intr_status = _interrupt_disable();
+  spinlock_acquire(&process_table_slock);
+  while (process_table[pid].state != PROCESS_ZOMBIE) {
+    sleepq_add(&(process_table[pid].pid));
+    spinlock_release(&process_table_slock);
+    thread_switch();
+    spinlock_acquire(&process_table_slock);
+  }
+  result = process_table[pid].result;
+  process_clear(pid);
+
+  spinlock_release(&process_table_slock);
+  _interrupt_set_state(intr_status);
+  return result;
+}
+
+void process_init(void) {
+  int i;
+  spinlock_reset(&process_table_slock);
+
+  /* Init all entries */
+  for (i=0; i<CONFIG_MAX_PROCESSES; i++) {
+    process_clear(i);
+  }
+}
+
+/** Clear a table element from the process_table.
+ *
+ * Note that obtaining process_table_slock and disabling interrupts
+ * is assumed to be done by calling function if needed.
+ */
+void process_clear(process_id_t pid) {
+
+  KERNEL_ASSERT(pid < CONFIG_MAX_PROCESSES);
+
+    process_table[pid].executable = NULL;
+    process_table[pid].pid = -1;
+    process_table[pid].state = PROCESS_FREE;
+    process_table[pid].result = 0;
+    process_table[pid].program_counter = 0;
+    process_table[pid].parent = -1;
+    process_table[pid].child = -1;
+    process_table[pid].next_sibling = -1;
+  }
 
 /** @} */

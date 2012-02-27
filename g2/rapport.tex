@@ -1,0 +1,45 @@
+\documentclass[10pt,a4paper,danish]{article}
+\usepackage[danish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xfrac}
+\usepackage[dot, autosize, outputdir="dotgraphs/"]{dot2texi}
+\usepackage{tikz}
+\usetikzlibrary{shapes}
+
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot{}
+\rhead{\today}
+\rfoot{\thepage}
+\setlength\parskip{1em}
+\setlength\parindent{1em}
+
+%% Titel og forfatter
+\title{}
+\author{Maria Caroline Miller, 040779, twq135 \\ Søren Pilgård, 190689, vpb984}
+
+%% Start dokumentet
+\begin{document}
+
+%% Vis titel
+\maketitle
+\newpage
+
+%% Vis indholdsfortegnelse
+\tableofcontents
+\newpage
+
+\section{}
+
+\section{}
+
+Vi har tilføjet CONFIG_MAX_PROCESSES til kernel/config.h
+process_join er ændret til at være int for at passe med process_finish. Det giver mening at processer kan returnere negative værdier.
+\end{document}

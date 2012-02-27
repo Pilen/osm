@@ -45,6 +45,12 @@
 /* Size of the stack of a kernel thread */
 #define CONFIG_THREAD_STACKSIZE 4096
 
+/* Define the maximum number of processes supported.
+ * As processes are defined in a one to one relationship with kernel threads,
+ * the variables should probably be similar.
+ */
+#define CONFIG_MAX_PROCESSES 32
+
 /* Define the maximum number of CPUs supported by the kernel
  * Range from 1 to 32
  * CONFIG_MAX_THREADS should be the same or greater

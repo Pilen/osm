@@ -37,9 +37,50 @@
 #ifndef BUENOS_PROC_PROCESS
 #define BUENOS_PROC_PROCESS
 
+#include "lib/types.h"
+
+typedef enum {
+  PROCESS_RUNNING,
+  PROCESS_FREE,
+  PROCESS_ZOMBIE
+} process_state_t;
+
 typedef int process_id_t;
 
+typedef struct {
+  const char *executable;
+  process_id_t pid;
+  process_state_t state;
+  int result;
+
+  uint32_t program_counter;
+
+  process_id_t parent;
+  process_id_t child;
+  process_id_t next_sibling;
+} process_table_t;
+
+
 void process_start(const char *executable);
+
+/* Run process in new thread , returns PID of new process */
+process_id_t process_spawn(const char *executable);
+
+/* Run process in this thread , only returns if there is an error */
+int process_run(const char *executable);
+
+/* Get pid of current procces */
+process_id_t process_get_current_process(void);
+
+/* Stop the current process and the kernel thread in which it runs */
+void process_finish(int retval);
+
+/* Wait for the given process to terminate , returning its return value,
+   and marking the process table entry as free */
+int process_join(process_id_t pid);
+
+/* Initialize process table. Should be called before any other process-related calls */
+void process_init(void);
 
 #define USERLAND_STACK_TOP 0x7fffeffc
 

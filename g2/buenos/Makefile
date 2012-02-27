@@ -112,10 +112,10 @@ doc: $(SRC)
 
 # TAGS
 ctags:
-	find . -type f -name '*.[ch]' | xargs ctags
+	find . -type f -name '*.[chS]' | xargs ctags
 
 etags:
-	find . -type f -name '*.[ch]' | xargs etags
+	find . -type f -name '*.[chS]' | xargs etags
 
 tags: ctags etags
 
