@@ -78,7 +78,9 @@ Hvis processen, der skal afsluttes har en forælder, skal resultatet jo sendes v
 Hvis forælderen sover (aka venter på at dens børn bliver færdige med deres arbejde), skal den nu vækkes i sovekøen og have at vide at dens barneprocess er færdig. Og så skal spinlocken åbnes og interrupt tillades igen. Derefter afsluttes tråden med denne process.
 
 \subsection{process\_join}
-Join sætter en process til at vente på at dens barn bliver færdig med at lave sit arbejde, så den kan samle resultatet op, og bruge dette i sit videre arbejde. Oprindeligt var funktionen af typen uint32\_t. Dette er lavet om til at være af typen int, fordi SØREN \\
+Join sætter en process til at vente på at dens barn bliver færdig med at lave sit arbejde, så den kan samle resultatet op, og bruge dette i sit videre arbejde. Oprindeligt var funktionen af typen uint32\_t.
+Dette er lavet om til typen int for at skabe overensstemelse med hvad process_finish tager som argument. Når brugeren laver et systemkald til syscall_exit gives der en positiv int med, samt der forventes at syscall_join returnere en int. Vi betragter det derfor som en fejl at process_join returnerer en uint32_t.
+
 
 Der checkes på om pid overhovedet er legalt (aka eksisterer i vores processtabel) og om den nuværende kørende process er forældre til det pid, som vi prøver at joine med. Dette er fordi man kun kan joine med sine egne børn.\\
 
