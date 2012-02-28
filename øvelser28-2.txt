@@ -1,0 +1,131 @@
+G2:
+Når kerner modtager systemkald - hukommelsen skal straks kopieres ud fra brugerhukommelsen til kernen. Især hvis pegeren skal gives videre til en anden process.
+
+Når du er igang med at oprette tråden er det okay ikke at låse, fordi den eneste der kan skrive til tråden er process_run, og den kører kun en gang pr. tråd.
+
+Processtabellen behøver kun at være i process.c ikke i .h
+
+G3:
+void condition_wait(cond_t *cond) er defineret som sådan i opgaven. bør være:
+void condition_wait(cond_t *cond, loct_t *loct)
+lock(lock_x)
+while(x==0) {
+	    condition_wait(cond_x, lock_x);
+}
+
+Hvis vi ikke låser, og lægger os til at sove, kan andre ændre i x, og det vil vi aldrig opdage..
+
+broadcast, signal, init behøver ikke lås
+
+Det eneste vi ved når vi vågner er at vi er blevet vækket, fordi x er blevet ændret. Når vi laver condition-snask skal vi altid have en løkke
+
+En rimelig måde at vække folk på ville være at vække en der har ventet længst - FIFO
+
+Brug sleepq
+
+Det spidsfindige er at håndtere låsen - man må kun kalde condition_wait hvis har låsen og har låst den
+
+Øvelsesopgaver:
+Buenos: 5.1
+Interrupt: det der kører bliver sluttet og noget andet starter
+Interrupthandler kan ikke stoppes - den skal køre ud
+Hvis man har taget låsen og der sker et interrupt som prøver at låse en spinlock som allerede er låst, så står den bare og venter, men der er jo intet andet der kan lave noget heller - DEADLOCK!
+
+Buenos: 5.9
+Der er en bunke af processer - når tre har kaldt henholdsvis male(), female() og matchmaker(), kan hvalerne parre sig, og trådene kan returnere.
+
+uint males = 0
+uint females = 0
+uint matchmakers = 0
+Lock cnt_lock
+Cond cnt_cond
+uint male_mated=0
+uint female_mated=0
+uint matchmaker_mated=0
+
+
+male() {
+       lock(cnt_lock);
+       males++;
+       while(females==0 || matchmaker==0) {
+       		wait(cnt_cond, cnt_lock)
+       }
+       dusk()
+       signal_all(cnt_cond)
+       female_mated++;
+       matchmaker_mated++;
+       males--;
+       unlock(cnt_lock)   
+}
+female() {
+	 lock(cnt_lock);
+	 matchmaker++;
+	 while(matchmaker_mated==0) {
+	 	wait(cnt_cond, cnt_lock)
+	 }
+	 matchmaker_mated--;
+	 matchmaker--;
+	 unlock(cnt_lock)
+}
+matchmaker() {
+Samme som matchmaker() med rotation
+}
+
+SGG: 6.28
+busy waiting: når man lægger tal sammen, mens man venter på sin cola :D
+     spin waiting: man checker hele tiden om det man venter på er klar
+sleepq: man venter indtil det man venter på sker - bruger ikke ressourcer imens
+hvorfor bruger man busy waiting (aka spinlocks): der skal også laves lås til sovekøen - der skal bruges en mere primitiv metode til det
+busy wait bliver også nødt til at blive brugt til interrupt handler, fordi man jo ikke kan schedulere denne
+
+SGG: 6.29
+Monitor har nogle variabler og nogle metoder. Man kan kun kalde metoder udefra, og den er atomisk, så man kan kun bruge en af gangen.
+I C: 
+globale variabler...
+lock
+int foo() {
+lock 
+unlock
+}
+int bar(){
+lock 
+unlock
+}
+De låser allesammen den samme lås, så derfor kan kun en køre af gangen.
+
+En semafor er en tæller, og hvis du vil tælle nedad kan du kun tælle ned til 0, og så må man vente til nogle tæller den op igen, og så kan du fortsætte ved at tælle den ned. Bruges til mutex, hvor semaforen er 0 og 1.
+
+SGG: 7.1
+Vi har to stykker land med hav på begge sider (Gibraltar-strædet). Der er hvaler i begge have, og de vil gerne igennem kanalen. De kan ikke komme forbi hinanden, og de kan ikke bakke. Løs problemet med semaforer og låse.
+
+lock
+medi(){
+	lock
+	swim
+	unlock
+}
+atlantic(){
+	lock
+	swim
+	unlock
+}
+
+SGG: 7.2
+med semaforer
+a_sem = 1
+m_sem = 0
+medi(){
+	up(a_sem)
+	down(m_sem)
+}
+atlantic(){
+	up(m_sem)
+	down(a_sem)
+}
+
+SGG: 7.3
+for nemt!
+
+SGG: 7.10
+
+
