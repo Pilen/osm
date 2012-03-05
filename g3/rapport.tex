@@ -36,8 +36,39 @@
 %%\tableofcontents
 %%\newpage
 
-\section{}
+\section{Opgave 1 - låse og betingelsevariabler}
+\subsection{Låse til kernetråde i Buenos}
 
+\subsubsection{Typedefinition af mutex}
+Lock\_t har en spinlock til at låse med og en variabel som indikerer om låsen er låst eller ej.
 
+\subsubsection{lock\_reset(lock\_t *lock)}
+Der returneres -1, hvis lock\_t ikke allerede er allokeret. Ellers sættes locked-variablen til 0, og der kaldes spinlock\_reset med låsen. 
+
+\subsubsection{lock\_aquire(lock\_t *lock)}
+Interrupt disables, og der hentes en spinlock med spinlock\_acquire. Hvis låsen allerede er låst (locked == 1), bliver forespørgslen tilføjet til en sovekø, og der arbejdes videre med en anden forespørgsel. Når låsen er ledig (locked bliver sat til 0 et sted) og det er muligt at skaffe den låses variablen igen, og spinlocken løftes, og interrupts enables igen.
+
+\subsubsection{lock\_release(lock\_t *lock)}
+Interrupt disables, spinlocken hentes. Låsevariablen sættes til 0, og sovekøen vækkes. Derefter åbnes spinlocken igen og interrupt enables.
+
+\subsection{Betingelsesvariabler til kernetråde i Buenos}
+
+\subsubsection{Typedefinition af condition variables}
+Da cond\_t ikke rigtig skal indeholde nogle oplysninger bliver typen sat til en simpel int.
+
+\subsubsection{condition\_init(cont\_t *cond)}
+Typen sættes bare til at pege på 1337.
+
+\subsubsection{condition\_wait(cont\_t *cond, lock\_t *lock)}
+Interrupt disables. Det tjekkes om kalderen rent faktisk har husket at låse låsen, inden den kalder wait. Sovekøen sættes igen, med betingesesvariablen, som parameter, og låsen åbnes op. Der skiftes til en anden tråd mens der ventes. Derefter samles låsen op igen, og interrupt enables igen.
+
+\subsubsection{condition\_signal(cond\_t *cond)}
+Der gives signal til at vække en tråd fra sovekøen. Der behøves ikke mere i forbindelse med 'signal and continue'-ideen da vi i condition\_wait bruger funktionen lock\_acquire, som først giver låsen fra sig når den er helt færdig, eller har lagt sig til at sove. Derfor klares det automatisk, at ingen signaler risikerer at gå tabt.
+
+\subsubsection{condition\_broadcast(cont\_t *cond)}
+Denne funktion skal bare vække alle i sovekøen, og dette gøres nemt med wake\_all funktionen i sleepq.
+
+\section{Opgave 2 - Pthreads-baseret løsning til CREW-problemet}
+Udfordringen er at lave en løsning på 'Concurrent Read - Exclusive Write'-problemet. Tråde der læser data kan sagtens gøre dette på samme tidspunkt, hvorimod det er nødvendigt at skrivning foregår alene.
 
 \end{document}
