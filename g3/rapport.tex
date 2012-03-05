@@ -22,7 +22,7 @@
 \setlength\parindent{1em}
 
 %% Titel og forfatter
-\title{}
+\title{Godkendelsesopgave 3 - OSM 2012}
 \author{Maria Caroline Miller, 040779, twq135 \\ Søren Pilgård, 190689, vpb984}
 
 %% Start dokumentet
@@ -70,5 +70,16 @@ Denne funktion skal bare vække alle i sovekøen, og dette gøres nemt med wake\
 
 \section{Opgave 2 - Pthreads-baseret løsning til CREW-problemet}
 Udfordringen er at lave en løsning på 'Concurrent Read - Exclusive Write'-problemet. Tråde der læser data kan sagtens gøre dette på samme tidspunkt, hvorimod det er nødvendigt at skrivning foregår alene.
+
+\subsection{Basis implementation - Writer-starvation}
+
+\subsubsection{write\_counter(void *p)}
+Der laves en while-løkke, der kører et antal iterationer, så hver skrivetråd skriver flere gange. Der sættes en skrivelås, hvorefter der skrives (en tæller tælles op). Det tælles hvormange vi har skrevet i alt, og låsen åbnes igen.
+
+\subsubsection{read\_counter(void *p)}
+Igen har vi en while-løkke, der kører igennem flere iterationer. Her starter vi dog med at sætte en lås på counteren. Derefter lægger vi en til vores læsetæller og tjekker om den er 1 (i begyndelsen sættes den til 0). Der tjekkes om det er den første reader - i så fald låser vi skrivelåsen. Hvis læsetælleren er større end 1 har vi allerede låst for skrivelåsen, og vi kan derfor bare blive ved med at læse. Dette sikrer at vi kan have concurrent read. Tællelåsen lukkes op, og vi læser fra data. Derefter låses tællelåsen igen, og det tjekkes om der er flere læsere. Hvis der er flere låser vi bare tællerlåsen op igen, så en ny læser kan få chancen. Hvis der ikke er flere lukker vi skrivelåsen op inden vi åbner for tællerlåsen.
+
+\subsubsection{Main-funktionen}
+Selve mainfunktionen opretter plads til vores læse- og skrivetråde. Derefter oprettes de med pthread\_create i en løkke, så der dannes et bestemt antal af hver. Derefter køres en løkke pthread\_join, som venter på at vores tråde er færdige med at køre. Det udskrives hvormange tråde vi har kørt, og hvormange læsninger og skrivninger, der er udført. Derefter sletter vi låsene igen med pthread\_mutex\_destroy, og afslutter programmet med et kald til pthread\_exit.
 
 \end{document}
