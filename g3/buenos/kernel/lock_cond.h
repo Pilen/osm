@@ -9,7 +9,7 @@
 
 typedef struct {
   spinlock_t slock;
-  int value;
+  int locked;
 } lock_t;
 
 /*

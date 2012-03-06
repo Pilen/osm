@@ -82,4 +82,8 @@ Igen har vi en while-løkke, der kører igennem flere iterationer. Her starter v
 \subsubsection{Main-funktionen}
 Selve mainfunktionen opretter plads til vores læse- og skrivetråde. Derefter oprettes de med pthread\_create i en løkke, så der dannes et bestemt antal af hver. Derefter køres en løkke pthread\_join, som venter på at vores tråde er færdige med at køre. Det udskrives hvormange tråde vi har kørt, og hvormange læsninger og skrivninger, der er udført. Derefter sletter vi låsene igen med pthread\_mutex\_destroy, og afslutter programmet med et kald til pthread\_exit.
 
+\subsection{Resten}
+Vi nåede ikke at løse opgave 2b og 2c.
+
+
 \end{document}

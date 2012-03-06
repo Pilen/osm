@@ -1,7 +1,10 @@
+
 #include "kernel/lock_cond.h"
 #include "kernel/spinlock.h"
 #include "kernel/sleepq.h"
 #include "kernel/thread.h"
+#include "kernel/interrupt.h"
+#include "kernel/assert.h"
 
 /*
  *  MUTEX.
@@ -15,7 +18,7 @@ int lock_reset(lock_t *lock) {
   if (lock == NULL)
     return -1;
   lock->locked = 0;
-  spinlock_reset(lock->slock);
+  spinlock_reset(&lock->slock);
   return 0;
 }
 
@@ -25,17 +28,17 @@ int lock_reset(lock_t *lock) {
 void lock_acquire(lock_t *lock) {
   interrupt_status_t intr_status;
   intr_status = _interrupt_disable();
-  spinlock_acquire(lock->slock);
+  spinlock_acquire(&lock->slock);
   
   while (lock->locked == 1) {
     sleepq_add(lock);
-    spinlock_release(lock->slock);
+    spinlock_release(&lock->slock);
     thread_switch();
-    spinlock_aquire(lock->slock);
+    spinlock_acquire(&lock->slock);
   }
   
   lock->locked = 1;
-  spinlock_release(lock->slock);
+  spinlock_release(&lock->slock);
   _interrupt_set_state(intr_status);
 }
 
@@ -45,10 +48,10 @@ void lock_acquire(lock_t *lock) {
 void lock_release(lock_t *lock) {
   interrupt_status_t intr_status;
   intr_status = _interrupt_disable();
-  spinlock_acquire(lock->slock);
+  spinlock_acquire(&lock->slock);
   lock->locked = 0;
   sleepq_wake(lock);
-  spinlock_release(lock->slock);
+  spinlock_release(&lock->slock);
   _interrupt_set_state(intr_status);
 }
 
@@ -77,7 +80,7 @@ void condition_wait(cond_t *cond, lock_t *lock){
   sleepq_add(cond);
   lock_release(lock);
   thread_switch();
-  lock_aquire(lock);
+  lock_acquire(lock);
   _interrupt_set_state(intr_status);
 }
 
